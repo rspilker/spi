@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<!--
+
+Copyright 2008 TOPdesk, the Netherlands
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+-->
+<project name="thumbnailer" default="compile">
+	<!-- Project names -->
+	<property name="service.name" value="thumbnails" />
+	<property name="provider.name" value="img-thumbnailer" />
+	
+	<!-- Relevant directories -->
+	<property name="super.dir" value="${basedir}/.." />
+	<property name="release.dir" value="${super.dir}/${service.name}-release" />
+	<property name="tools.dir" value="${super.dir}/tools" />
+	<property name="service.src.dir" value="${basedir}/src" />
+	<property name="service.bin.dir" value="${basedir}/bin" />
+	<property name="provider.dir" value="${super.dir}/${provider.name}" />
+	<property name="provider.src.dir" value="${provider.dir}/src" />
+	<property name="provider.bin.dir" value="${provider.dir}/bin" />
+
+	<!-- Relevant files -->
+	<property name="src.zip.file" value="${release.dir}/${service.name}-src.zip" />
+	<property name="package.zip.file" value="${release.dir}/${service.name}.zip" />
+	<property name="mf.file" value="${service.bin.dir}/META-INF/MANIFEST.MF" />
+	<property name="service.jar.file" value="${release.dir}/thumbnailer.jar" />
+	<property name="provider.jar.file" value="${release.dir}/img-thumbnailer.jar" />
+	
+	<target name="source" depends="prepareRelease" description="Create source archive">
+		<zip destfile="${src.zip.file}">
+			<zipfileset dir="${service.src.dir}" prefix="${service.name}/src/" />
+			<zipfileset file="${ant.file}" prefix="${service.name}" />
+			<zipfileset dir="${provider.src.dir}" prefix="${provider.name}/src/" />
+			<zipfileset dir="${tools.dir}" prefix="tools/" />
+		</zip>
+	</target>
+	
+	<target name="compile-service" description="Compile the service">
+		<mkdir dir="${service.bin.dir}" />
+		<javac srcdir="${service.src.dir}" classpath="${service.src.dir}" destdir="${service.bin.dir}" compiler="modern" debug="true" source="1.6" encoding="UTF-8" target="1.6" />
+	</target>
+		
+	<target name="compile"  depends="compile-service" description="Compile all">
+		<mkdir dir="${provider.bin.dir}" />
+		<javac srcdir="${provider.src.dir}" destdir="${provider.bin.dir}" compiler="modern" debug="true" source="1.6" encoding="UTF-8" target="1.6">
+			<classpath>
+				<fileset dir="${tools.dir}" />
+				<pathelement path="${provider.src.dir}" />
+				<pathelement path="${service.bin.dir}" />
+			</classpath>
+		</javac>
+	</target>
+		
+	<target name="jar-service" depends="compile-service,manifest,prepareRelease" description="Create service jar file">
+		<jar basedir="${service.bin.dir}" destfile="${service.jar.file}" manifest="${mf.file}" />
+	</target>
+	
+	<target name="jar-provider" depends="compile,prepareRelease" description="Create provider jar file">
+		<jar basedir="${provider.bin.dir}" destfile="${provider.jar.file}" />
+	</target>
+	
+	<target name="jar-both" depends="jar-service,jar-provider" description="Create both jar files" />
+	
+    <target name="package" depends="jar-both" description="Create a package of all required archives">
+		<zip destfile="${package.zip.file}">
+			<zipfileset file="${service.jar.file}" />
+			<zipfileset file="${provider.jar.file}" />
+		</zip>
+    </target>
+
+	<target name="prepareRelease">
+		<mkdir dir="${release.dir}" />
+	</target>
+	
+	<target name="manifest">
+		<mkdir dir="${service.bin.dir}/META-INF" />
+		<tstamp>
+			<format property="TODAY" pattern="MMMM dd, yyyy" locale="en" />
+		</tstamp>
+		<manifest file="${mf.file}">
+			<attribute name="Implementation-Title" value="Thumbnailer, example project for the @ProviderFor annotation" />
+			<attribute name="Implementation-Version" value="1.0 (${TODAY})" />
+			<attribute name="Implementation-Vendor" value="mangosdk.org" />
+			<attribute name="Main-Class" value="org.mangosdk.spi.examples.thumbnails.Thumbnailer" />
+		</manifest>
+	</target>
+	
+	<target name="clean" description="Remove generated files">
+		<delete dir="${service.bin.dir}" failonerror="false" />
+		<delete dir="${provider.bin.dir}" failonerror="false" />
+		<delete dir="${release.dir}" failonerror="false" />
+	</target>
+</project>
