@@ -24,6 +24,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -51,17 +53,34 @@ import javax.tools.Diagnostic.Kind;
 import org.mangosdk.spi.ProviderFor;
 
 @SupportedAnnotationTypes("*")
-@SupportedSourceVersion(SourceVersion.RELEASE_6)
 @SupportedOptions({Options.SPI_DIR_OPTION, Options.SPI_LOG_OPTION, Options.SPI_VERBOSE_OPTION, Options.SPI_DISABLED_OPTION})
 public class SpiProcessor extends AbstractProcessor {
 	
 	public static final String NAME = SpiProcessor.class.getName() 
 		+ " (" + SpiProcessor.class.getPackage().getImplementationVersion() + ")";
 
+	private static final Pattern RELEASE_PATTERN = Pattern.compile("^RELEASE_(\\d+)$");
+	private static final int MAX_SUPPORTED_VERSION = 8;
+
 	private Options options;
 	private Logger logger;
 	private Persistence persistence;
 	private Collector data;
+
+	@Override
+	public SourceVersion getSupportedSourceVersion() {
+		SourceVersion[] svs = SourceVersion.values();
+		for (int i = svs.length - 1; i >= 0; i--) {
+			String name = svs[i].name();
+			Matcher m = RELEASE_PATTERN.matcher(name);
+			if (m.matches()) {
+				int release = Integer.parseInt(m.group(1));
+				if (release <= MAX_SUPPORTED_VERSION) return svs[i];
+			}
+		}
+
+		return SourceVersion.RELEASE_6;
+	}
 
 	@Override
 	public synchronized void init(ProcessingEnvironment environment) {
