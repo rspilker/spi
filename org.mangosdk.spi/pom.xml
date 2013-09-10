@@ -4,7 +4,7 @@
 	<groupId>org.mangosdk.spi</groupId>
 	<artifactId>spi</artifactId>
 	<packaging>jar</packaging>
-	<version>0.2.5-SNAPSHOT</version>
+	<version>0.2.7-SNAPSHOT</version>
 	<name>SPI</name>
 	<url>http://spi.googlecode.org</url>
 	<description>Java Annotation and Processor to simplify the use of the Service Provider Interface</description>
