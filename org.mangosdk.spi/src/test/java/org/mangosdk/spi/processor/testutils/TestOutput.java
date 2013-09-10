@@ -122,10 +122,10 @@ public final class TestOutput {
 			
 			@Override
 			public void write(int b) throws IOException {
+				parent.write(b);
 				if (!enabled.get()) {
 					throw new IllegalStateException("Writing to System." + name + " is not allowed.");
 				}
-				parent.write(b);
 				if (recording.get()) {
 					captured.write(b);
 				}

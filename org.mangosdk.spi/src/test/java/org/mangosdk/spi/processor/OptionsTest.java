@@ -210,6 +210,11 @@ public class OptionsTest extends NoOutputTestBase {
 	public static class TestProcessor extends AbstractProcessor {
 		
 		@Override
+		public SourceVersion getSupportedSourceVersion() {
+			return SourceVersion.latestSupported();
+		}
+
+		@Override
 		public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 			return false;
 		}
